@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matter.js Project</title>
+  <script src="../node_modules/matter-js/build/matter.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap">
+
+  <style>
+    #score {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 20px;
+        color: white;
+        pointer-events: none;
+        font-family: 'Roboto Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+
+<script>
+var Example = Example || {};
+
+Example.slingshot = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composites = Matter.Composites,
+        Events = Matter.Events,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Body = Matter.Body,
+        Composite = Matter.Composite,
+        Bodies = Matter.Bodies;
+
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
+
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: 800,
+            height: 600,
+            showAngleIndicator: true
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // add bodies
+    var ground = Bodies.rectangle(395, 600, 815, 50, { label: 'Ground', isStatic: true, render: { fillStyle: '#060a19' } }),
+        bulletOptions = { density: 0.004, label: 'Bullet' },
+        bullet = Bodies.polygon(170, 450, 8, 20, bulletOptions),
+        anchor = { x: 170, y: 450 },
+        elastic = Constraint.create({
+            pointA: anchor,
+            bodyB: bullet,
+            length: 0.01,
+            damping: 0.01,
+            stiffness: 0.05
+        });
+
+    var pyramid = Composites.pyramid(500, 300, 5, 10, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 25, 40, { label: 'GoodBox' });
+    });
+
+    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true, render: { fillStyle: '#060a19' } });
+
+    var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 25, 40, { label: 'SpecialBox' });
+    });
+
+    Composite.add(engine.world, [ground, pyramid, ground2, pyramid2, bullet, elastic]);
+
+    var isMouseDown = true;
+    document.addEventListener('mousedown', function() { isMouseDown = true; });
+    document.addEventListener('mouseup', function() { isMouseDown = false; });
+
+    // Initialize score
+    var score = 0;
+
+    // Display score on the screen
+    var scoreElement = document.getElementById('score');
+    scoreElement.innerHTML = 'Score: ' + score;
+
+    Events.on(engine, 'afterUpdate', function() {
+        if (mouseConstraint.mouse.button === -1 && (bullet.position.x > 190 || bullet.position.y < 430)) {
+            // Limit maximum speed of the current bullet.
+            if (Body.getSpeed(bullet) > 45) {
+                Body.setSpeed(bullet, 45);
+            }
+
+            // Release the current bullet and add a new one.
+            bullet = Bodies.polygon(170, 450, 7, 20, bulletOptions);
+            Composite.add(engine.world, bullet);
+            elastic.bodyB = bullet;
+        }
+    });
+
+    Events.on(engine, 'collisionStart', function(event) {
+        var pairs = event.pairs;
+
+        pairs.forEach(function(pair) {
+            // GOOD BOX COLLISIONS
+            const isBullet = (body) => body.label === 'Bullet';
+            const isGoodBox = (body) => body.parts && body.parts.some(part => part.label === 'GoodBox');
+            const isSpecialBox = (body) => body.parts && body.parts.some(part => part.label === 'SpecialBox');
+            const isGround = (body) => body.label === 'Ground'
+
+            const isBulletAndGoodBoxCollision = (isBullet(pair.bodyA) && isGoodBox(pair.bodyB)) || (isBullet(pair.bodyB) && isGoodBox(pair.bodyA))
+            const isBulletAndSpecialBoxCollision = (isBullet(pair.bodyA) && isSpecialBox(pair.bodyB)) || (isBullet(pair.bodyB) && isSpecialBox(pair.bodyA))
+            const isBulletAndGroundCollision = (isBullet(pair.bodyA) && isGround(pair.bodyB)) || (isBullet(pair.bodyB) && isGround(pair.bodyA));
+
+            const collidedGoodBox = isGoodBox(pair.bodyA) ? pair.bodyA : pair.bodyB;
+            const collidedSpecialBox = isSpecialBox(pair.bodyA) ? pair.bodyA : pair.bodyB;
+            const collidedBullet = isBullet(pair.bodyA) ? pair.bodyA : pair.bodyB;
+
+            // GOOD BOX COLLISIONS
+            if (isBulletAndGoodBoxCollision) {
+              console.log("+10 points!");
+              Composite.remove(pyramid, collidedGoodBox);     // Remove good box
+              Composite.remove(engine.world, collidedBullet); // Remove bullet
+              score += 10;                                    // Decrease score
+              scoreElement.innerHTML = 'Score: ' + score;     // Update score
+            }
+
+            // SPECIAL BOX COLLISIONS
+            if (isBulletAndSpecialBoxCollision) {
+              console.log("+20 points!");
+              Composite.remove(pyramid2, collidedSpecialBox); // Remove special box
+              Composite.remove(engine.world, collidedBullet); // Remove bullet
+              score += 20;                                    // Increase score
+              scoreElement.innerHTML = 'Score: ' + score;     // Update score
+            }
+
+            // BULLET GROUND COLLISIONS
+            if (isBulletAndGroundCollision && !isMouseDown) {
+              console.log("Bullet collided with the ground! -2 points!");
+              Composite.remove(engine.world, collidedBullet); // Remove bullet
+              score -= 2;                                     // Decrease score
+              scoreElement.innerHTML = 'Score: ' + score;     // Update score
+            }
+        });
+    });
+
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    Composite.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+
+    // fit the render viewport to the scene
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
+};
+
+Example.slingshot.title = 'Slingshot';
+Example.slingshot.for = '>=0.14.2';
+
+// Run the example
+Example.slingshot();
+
+</script>
+
+</body>
+</html>
+
