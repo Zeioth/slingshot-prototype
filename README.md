@@ -6,6 +6,9 @@ Prototype of a videogame in Matter.js
 * `npm install`
 * `npm start`
 
+## Youtube showcase
+[See video here](https://www.youtube.com/watch?v=mqxPWWSjmAw)
+
 ## Roadmap
 * It would be desireable porting the game to typescript.
 * It would be desireable separating the game into different files so we can scale it following the design patterns we decide.
