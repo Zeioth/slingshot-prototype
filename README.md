@@ -13,3 +13,5 @@ Prototype of a videogame in Matter.js
 * It would be desireable separating the game into different files so we can scale it following the design patterns we decide.
 * It would be desireable supporting multiple levels by using `engine.world = scenes[sceneIndex].world`.
 * It would be desireable creating a pause function, so nothing is clickable while we show the `Stage Cleared!` message, except for the `Next` UI button.
+
+This would be considered a more complete DEMO. Over that we could start adding assets and further UI/UX. It would also be a good idea to start versioning the game.
