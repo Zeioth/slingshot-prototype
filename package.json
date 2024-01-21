@@ -2,9 +2,9 @@
   "name": "slingshot-game",
   "version": "1.0.0",
   "description": "",
-  "main": "xdg-open ./index.html",
+  "main": "xdg-open src/index.html",
   "scripts": {
-    "run": "xdg-open ./index.html",
+    "run": "xdg-open src/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
