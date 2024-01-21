@@ -1,13 +1,12 @@
 {
   "name": "slingshot-game",
   "version": "1.0.0",
-  "description": "",
-  "main": "xdg-open src/index.html",
+  "description": "Prototype of a videogame in matter.js",
   "scripts": {
-    "run": "xdg-open src/index.html",
+    "start": "xdg-open src/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Adrian Lopez",
   "license": "ISC",
   "dependencies": {
     "matter-js": "^0.19.0"
