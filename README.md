@@ -1,13 +1,12 @@
 # slingshot-prototype
 Prototype of a videogame in Matter.js
 
+[SEE VIDEO HERE](https://www.youtube.com/watch?v=mqxPWWSjmAw)
+
 ## How to run
 
 * `npm install`
 * `npm start`
-
-## Youtube showcase
-[See video here](https://www.youtube.com/watch?v=mqxPWWSjmAw)
 
 ## Roadmap
 * It would be desireable porting the game to typescript.
